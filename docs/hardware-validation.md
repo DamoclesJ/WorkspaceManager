@@ -21,6 +21,49 @@ created: 2026-08-05
 - Logitech Flow 协同能力
 
 ---
+# 当前硬件连接关系
+
+## 主机
+
+### Mac mini M4
+
+连接：
+
+- 雷鸟 U8 24款 27英寸
+- HDMI 直连
+
+---
+
+### Windows Desktop
+
+连接：
+
+- 雷鸟 U8 24款 27英寸
+- DP 直连
+
+- BenQ GW2480
+- HDMI 输出 → HDMI 转 DP → 显示器 DP 输入
+
+---
+
+## 显示器映射
+
+雷鸟 U8 24款 27英寸：
+
+HDMI → Mac mini M4
+
+DP → Windows Desktop
+
+接口：
+
+- HDMI × 2
+- DP × 1
+- Type-C × 1
+
+
+BenQ GW2480：
+
+DP 输入 ← HDMI 转 DP ← Windows Desktop
 
 # 1. Mac mini M4
 
@@ -124,6 +167,17 @@ created: 2026-08-05
 ---
 
 ## 雷鸟 U8
+
+当前状态：
+
+- 型号：雷鸟 U8 24款 27英寸
+- 已使用输入：
+  - HDMI：Mac mini M4
+  - DP：Windows Desktop
+
+目标：
+
+验证是否可以通过软件控制 HDMI / DP 输入切换。
 
 需要确认：
 
