@@ -27,3 +27,7 @@ WorkspaceManager 是一个个人桌面环境自动化管理工具，用于管理
 2. 验证关键自动化能力：远程唤醒、显示器控制、Windows 显示模式、Flow 协同。
 3. 实现最小闭环：从控制入口完成一次完整的“切到 Mac”或“切到 Windows”流程。
 4. 逐步优化切换耗时、失败恢复和无感程度。
+
+## Learning Branch
+
+This section is created on learning-git branch.
