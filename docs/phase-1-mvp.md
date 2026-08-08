@@ -81,6 +81,20 @@ m1ddc display 1 set input 7
 
 MVP 只检查底层命令是否执行成功。显示器当前输入源不通过程序读回判断，最终结果以已验证的硬件行为为准。
 
+## Phase 1.1 快捷方式验证
+
+状态：已验证 ✅
+
+验证结果：
+
+- Windows 快捷方式可以成功运行对应的 PowerShell 脚本。
+- `DisplaySwitch.exe /external` 已验证。
+- `DisplaySwitch.exe /extend` 已验证。
+- Mac 上的 `m1ddc display 1 set input 7` 已验证。
+- 当前切换流程保持不变：切到 Windows 仍需要先在 Windows 执行 `/extend`，再在 Mac 执行输入切换脚本。
+
+快捷方式文件属于本地用户配置，不纳入仓库跟踪，也不是 MVP 的项目文件。
+
 ## 暂不实现
 
 - SSH 或其他远程调用。

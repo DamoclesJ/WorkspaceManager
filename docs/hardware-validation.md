@@ -338,6 +338,18 @@ MVP 第一版范围：
 2. “切到 Windows”：Windows 执行 `DisplaySwitch.exe /extend`，Mac 执行 `m1ddc display 1 set input 7`。
 3. 用固定硬件配置和命令结果记录操作日志，不读取 U8 当前输入源。
 
+## Phase 1.1 快捷方式验证
+
+验证结果（2026-08-08）：
+
+- Windows 快捷方式可以成功运行对应的 PowerShell 脚本。
+- `DisplaySwitch.exe /external` 已验证。
+- `DisplaySwitch.exe /extend` 已验证。
+- Mac 上的 `m1ddc display 1 set input 7` 已验证。
+- 快捷方式文件属于本地用户配置，不纳入仓库跟踪。
+
+本次验证未加入 SSH，未改变 Phase 0 已验证的硬件切换流程。
+
 ---
 
 # 当前结论
