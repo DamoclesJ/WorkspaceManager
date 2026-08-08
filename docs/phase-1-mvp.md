@@ -5,7 +5,7 @@
 
 ## 目标
 
-用最简单的本地脚本复现 Phase 0 已验证的两条切换流程，不引入服务、Agent、SSH、GUI 或配置系统。
+用最简单的脚本复现 Phase 0 已验证的两条切换流程，不引入服务、Agent、GUI 或配置系统。Phase 1.2 使用系统 SSH 完成 Windows 到 Mac 的远程命令调用。
 
 ## MVP 范围
 
@@ -66,6 +66,7 @@ m1ddc display 1 set input 7
 | --- | --- | --- |
 | `scripts/windows/switch-to-mac.ps1` | Windows | 执行 `/external`，释放 U8 的 Windows DP 信号 |
 | `scripts/windows/switch-to-windows.ps1` | Windows | 执行 `/extend`，恢复 Windows 扩展桌面 |
+| `scripts/windows/switch-to-windows-remote.ps1` | Windows | 执行 `/extend`，再通过 SSH 调用 Mac 的输入切换命令 |
 | `scripts/mac/switch-input-to-windows.sh` | Mac | 使用 `m1ddc` 将 U8 切换到 Windows DP |
 
 ## 使用约束
@@ -75,7 +76,8 @@ m1ddc display 1 set input 7
 - 不使用 Windows ControlMyMonitor 或 VCP 输入控制。
 - 雷鸟 U8 在 Mac 上的显示器编号固定为 `1`。
 - `input 7` 是当前已验证的 Windows DP 输入值。
-- 切换到 Windows 需要分别在 Windows 和 Mac 上执行脚本；本阶段不做远程调用。
+- `switch-to-windows.ps1` 仍需要分别在 Windows 和 Mac 上执行脚本。
+- `switch-to-windows-remote.ps1` 使用已验证的 SSH key 登录执行 Mac 端命令。
 
 ## 成功判断
 
@@ -95,9 +97,39 @@ MVP 只检查底层命令是否执行成功。显示器当前输入源不通过�
 
 快捷方式文件属于本地用户配置，不纳入仓库跟踪，也不是 MVP 的项目文件。
 
+## Phase 1.2 SSH 一键切换验证
+
+状态：已验证 ✅
+
+新增脚本：
+
+```powershell
+scripts\windows\switch-to-windows-remote.ps1
+```
+
+执行流程：
+
+1. 在 Windows 执行 `DisplaySwitch.exe /extend`。
+2. 使用 SSH key 登录 `jiaxiangdong@192.168.1.134`。
+3. 在 Mac 上无密码执行：
+
+   ```text
+   /opt/homebrew/bin/m1ddc display 1 set input 7
+   ```
+
+验证结果：
+
+- SSH key 登录成功。
+- 无密码远程执行成功。
+- 连续执行稳定。
+- Windows -> Mac 的远程 `m1ddc` 命令调用成功。
+- 脚本保留 `/extend` 和 SSH 两步的错误检查。
+
+本阶段只使用系统 SSH，不增加自定义服务、Agent、GUI 或配置系统。
+
 ## 暂不实现
 
-- SSH 或其他远程调用。
+- 自定义远程服务或 Agent。
 - GUI、菜单栏和系统托盘入口。
 - 常驻服务、Agent、WebSocket、mDNS。
 - 配置文件、数据库和动态硬件发现。
