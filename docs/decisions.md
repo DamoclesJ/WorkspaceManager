@@ -38,6 +38,14 @@
 - 决策：控制、状态和通信默认只在本地局域网内进行。
 - 影响：无需账号和云基础设施，但需要处理局域网发现和鉴权。
 
+### ADR-005: MVP 采用固定命令流程，不依赖显示器状态读回
+
+- 日期：2026-08-08
+- 状态：已接受
+- 背景：Phase 0 已验证两条可靠的显示切换流程：Windows 的 `DisplaySwitch.exe` 可以切换 Windows 的显示模式；Mac 上的 `m1ddc display 1 set input 7` 可以将雷鸟 U8 切换到 Windows DP。U8 输入源读回以及 Windows ControlMyMonitor/VCP 输入控制不可靠。
+- 决策：MVP 只实现两个固定场景。“切到 Mac”执行 `DisplaySwitch.exe /external`；“切到 Windows”执行 `DisplaySwitch.exe /extend` 后执行 Mac 上的 `m1ddc display 1 set input 7`。控制入口先采用 PowerShell 脚本和桌面快捷方式，不引入常驻服务、Agent、mDNS 或 WebSocket。
+- 影响：MVP 假设两台主机已登录且可执行命令，依赖当前固定硬件连接和 U8 的输入值 `7`。远程唤醒、Flow 自动化、状态同步和硬件更换适配留到后续阶段。
+
 ## 待定决策
 
 - 控制中枢运行在 Mac mini M4 还是 Windows 台式机。
@@ -48,6 +56,7 @@
 - 控制端与被控端的通信与鉴权方案。
 - 配置存储方式。
 - 开源协议。
+- Mac 命令是否通过 SSH 在 Windows 端一键触发，还是先保留为 Mac 本地快捷入口。
 
 ## 新增决策模板
 
