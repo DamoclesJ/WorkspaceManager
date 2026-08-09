@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $displaySwitch = Join-Path $env:WINDIR 'System32\DisplaySwitch.exe'
-$multiMonitorTool = 'D:\Try\Plub-in\multimonitortool-x64\MultiMonitorTool.exe'
+$multiMonitorTool = Join-Path $PSScriptRoot '..\..\tools\MultiMonitorTool.exe'
 $macTarget = 'jiaxiangdong@192.168.1.134'
 $remoteCommand = '/opt/homebrew/bin/m1ddc display 1 set input 7'
 
