@@ -1,7 +1,7 @@
 # WorkspaceManager Phase 1 MVP
 
-> 状态：实现中  
-> 更新日期：2026-08-08
+> 状态：Phase 1.3-C 已验证
+> 更新日期：2026-08-09
 
 ## 目标
 
@@ -31,34 +31,30 @@ DisplaySwitch.exe /external
 
 ### 切换到 Windows
 
-先在 Windows 上执行：
+在 Windows 上执行：
 
 ```powershell
-scripts\windows\switch-to-windows.ps1
+scripts\windows\switch-to-windows-remote.ps1
 ```
 
-脚本调用：
+当前流程：
 
 ```text
 DisplaySwitch.exe /extend
-```
-
-再在 Mac 上执行：
-
-```bash
-./scripts/mac/switch-input-to-windows.sh
-```
-
-脚本调用：
-
-```text
-m1ddc display 1 set input 7
+↓
+SSH 调用 Mac：
+/opt/homebrew/bin/m1ddc display 1 set input 7
+↓
+等待约 10 秒，让 U8 的 Windows DP 输入恢复
+↓
+MultiMonitorTool.exe /SetPrimary "\\.\DISPLAY1"
 ```
 
 预期结果：
 
 - Windows 恢复雷鸟 U8 + BenQ GW2480 扩展桌面。
 - U8 切换到 Windows DP。
+- U8 成为 Windows 主显示器。
 
 ## 文件职责
 
@@ -66,7 +62,7 @@ m1ddc display 1 set input 7
 | --- | --- | --- |
 | `scripts/windows/switch-to-mac.ps1` | Windows | 执行 `/external`，释放 U8 的 Windows DP 信号 |
 | `scripts/windows/switch-to-windows.ps1` | Windows | 执行 `/extend`，恢复 Windows 扩展桌面 |
-| `scripts/windows/switch-to-windows-remote.ps1` | Windows | 执行 `/extend`，再通过 SSH 调用 Mac 的输入切换命令 |
+| `scripts/windows/switch-to-windows-remote.ps1` | Windows | 执行 `/extend`、远程切换 U8 输入，并将 U8 设置为 Windows 主显示器 |
 | `scripts/mac/switch-input-to-windows.sh` | Mac | 使用 `m1ddc` 将 U8 切换到 Windows DP |
 
 ## 使用约束
@@ -76,6 +72,8 @@ m1ddc display 1 set input 7
 - 不使用 Windows ControlMyMonitor 或 VCP 输入控制。
 - 雷鸟 U8 在 Mac 上的显示器编号固定为 `1`。
 - `input 7` 是当前已验证的 Windows DP 输入值。
+- Windows 显示器映射固定为 `DISPLAY1 = TCL U8`、`DISPLAY2 = BenQ GW2480`。
+- U8 切换到 Windows DP 后需要等待约 10 秒，才能可靠设置 Windows 主显示器。
 - `switch-to-windows.ps1` 仍需要分别在 Windows 和 Mac 上执行脚本。
 - `switch-to-windows-remote.ps1` 使用已验证的 SSH key 登录执行 Mac 端命令。
 
@@ -126,6 +124,27 @@ scripts\windows\switch-to-windows-remote.ps1
 - 脚本保留 `/extend` 和 SSH 两步的错误检查。
 
 本阶段只使用系统 SSH，不增加自定义服务、Agent、GUI 或配置系统。
+
+## Phase 1.3-C 主显示器切换验证
+
+状态：已验证 ✅
+
+最终流程：
+
+1. Windows 执行 `DisplaySwitch.exe /extend`。
+2. Windows 通过 SSH 调用 Mac 的 `/opt/homebrew/bin/m1ddc display 1 set input 7`。
+3. 等待约 10 秒，让 U8 在 Windows DP 输入下完成恢复。
+4. MultiMonitorTool 执行 `/SetPrimary "\\.\DISPLAY1"`，将 U8 设置为 Windows 主显示器。
+
+验证结果：
+
+- `DISPLAY1 = TCL2701 / TCL U8`。
+- `DISPLAY2 = BNQ78E7 / BenQ GW2480`。
+- `m1ddc input 7` 远程执行成功。
+- MultiMonitorTool 主显示器切换成功。
+- 连续 3 次完整切换测试通过。
+
+关键硬件约束：U8 从 Mac HDMI 切换到 Windows DP 后，约 10 秒内仍处于恢复过程。必须等待恢复完成后再设置 Windows 主显示器，否则操作可能不生效。
 
 ## 暂不实现
 

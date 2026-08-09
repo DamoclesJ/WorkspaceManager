@@ -350,6 +350,21 @@ MVP 第一版范围：
 
 本次验证未加入 SSH，未改变 Phase 0 已验证的硬件切换流程。
 
+## Phase 1.3-C 主显示器切换验证
+
+验证结果（2026-08-09）：
+
+- Windows 显示器识别：
+  - `DISPLAY1 = TCL2701 / TCL U8`
+  - `DISPLAY2 = BNQ78E7 / BenQ GW2480`
+- Mac 上的 `m1ddc display 1 set input 7` 已验证，可将 U8 切换到 Windows DP。
+- Windows 使用 MultiMonitorTool 的 `/SetPrimary "\\.\DISPLAY1"` 将 U8 设置为主显示器。
+- `DisplaySwitch.exe /extend`、SSH 远程 `m1ddc`、U8 输入恢复和主显示器切换组成的完整流程连续 3 次测试通过。
+
+关键硬件约束：
+
+U8 从 Mac HDMI 切换到 Windows DP 后，需要等待约 10 秒完成恢复。之后再执行 Windows 主显示器切换；如果执行过早，MultiMonitorTool 命令可能无法生效。
+
 ---
 
 # 当前结论
