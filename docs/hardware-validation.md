@@ -365,6 +365,47 @@ MVP 第一版范围：
 
 U8 从 Mac HDMI 切换到 Windows DP 后，需要等待约 10 秒完成恢复。之后再执行 Windows 主显示器切换；如果执行过早，MultiMonitorTool 命令可能无法生效。
 
+## Phase 2.1 Workspace Reliability 验证
+
+验证结果（2026-08-11）：
+
+### Health Check
+
+- 已加入 `scripts/health/check-workspace-health.ps1`。
+- 切换前检查仓库内的 MultiMonitorTool、Windows 到 Mac 的 SSH 连通性，以及远端 `/opt/homebrew/bin/m1ddc` 是否存在且可执行。
+- 健康检查已在 Windows 实机验证通过。
+
+### Launcher Integration
+
+- `switch-to-windows.vbs` 和 `switch-to-mac.vbs` 已接入健康检查。
+- 健康检查返回非零退出码时，launcher 会停止执行并显示错误提示，不再继续调用切换脚本。
+
+### Display Readiness Detection
+
+- 已删除 U8 输入切换后的固定 10 秒等待。
+- 使用 MultiMonitorTool `/scomma` 导出的显示器状态检测 U8 是否恢复。
+- readiness detection 最多等待 20 秒；检测成功后才执行主显示器切换，超时则明确报错。
+
+### Temp File Race Fix
+
+- 每次 `/scomma` 检测使用独立 GUID 临时 CSV。
+- CSV 完整读取后清理，并对短暂文件锁进行有限重试。
+- 已修复 Windows Error 32 文件占用问题。
+
+### Dynamic Monitor Identification
+
+- 不再依赖固定的 `\\.\DISPLAY1`。
+- 根据 `TCL2701` Monitor ID、Short Monitor ID 或包含 `U8` 的 Monitor Name 识别雷鸟 U8。
+- 从当前 `/scomma` 结果动态取得 U8 对应的 `\\.\DISPLAYx`，再传给 MultiMonitorTool `/SetPrimary`。
+- 已解决显示器重新枚举后 DISPLAY1/DISPLAY2 漂移导致的主屏切换失败。
+
+最终验证：
+
+- Windows 实机连续切换测试通过。
+- U8 输入恢复和主显示器切换正常。
+- Error 32 未再出现。
+- 对应版本标签：`phase-2.1-workspace-reliability`。
+
 ---
 
 # 当前结论
