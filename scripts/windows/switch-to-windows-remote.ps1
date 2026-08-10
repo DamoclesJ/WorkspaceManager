@@ -4,7 +4,9 @@ $displaySwitch = Join-Path $env:WINDIR 'System32\DisplaySwitch.exe'
 $multiMonitorTool = Join-Path $PSScriptRoot '..\..\tools\MultiMonitorTool.exe'
 $macTarget = 'jiaxiangdong@192.168.1.134'
 $remoteCommand = '/opt/homebrew/bin/m1ddc display 1 set input 7'
-$targetDisplay = '\\.\DISPLAY1'
+$u8MonitorId = 'TCL2701'
+$u8MonitorName = 'U8'
+$targetDisplay = $null
 
 if (-not (Test-Path $multiMonitorTool)) {
     throw "MultiMonitorTool.exe not found: $multiMonitorTool"
@@ -51,7 +53,17 @@ do {
             try {
                 $monitorRows = @(Import-Csv -LiteralPath $monitorStateFile)
                 $display = $monitorRows |
-                    Where-Object { $_.Name -eq $targetDisplay } |
+                    Where-Object {
+                        $monitorIdMatches = $_.'Monitor ID' -like "*$u8MonitorId*"
+                        $shortMonitorIdMatches = $_.'Short Monitor ID' -eq $u8MonitorId
+                        $monitorNameMatches = $_.'Monitor Name' -like "*$u8MonitorName*"
+                        $monitorIdMatches -or $shortMonitorIdMatches -or $monitorNameMatches
+                    } |
+                    Where-Object {
+                        $_.Active -eq 'Yes' -and
+                        $_.Disconnected -ne 'Yes' -and
+                        -not ([string]::IsNullOrWhiteSpace($_.Name))
+                    } |
                     Select-Object -First 1
             }
             catch {
@@ -59,7 +71,8 @@ do {
             }
         }
 
-        if ($null -ne $display -and $display.Active -eq 'Yes' -and $display.Disconnected -ne 'Yes') {
+        if ($null -ne $display) {
+            $targetDisplay = $display.Name
             $displayReady = $true
         }
     }
@@ -91,9 +104,10 @@ do {
 } while ((Get-Date) -lt $deadline)
 
 if (-not $displayReady) {
-    throw "Timed out after 20 seconds waiting for $targetDisplay to become active."
+    throw "Timed out after 20 seconds waiting for Thunderbird U8 to become active."
 }
 
+Write-Host "Thunderbird U8 detected as $targetDisplay."
 Write-Host 'Setting Thunderbird U8 as the Windows primary display...'
 & $multiMonitorTool /SetPrimary $targetDisplay
 
