@@ -5,7 +5,6 @@ $multiMonitorTool = Join-Path $PSScriptRoot '..\..\tools\MultiMonitorTool.exe'
 $macTarget = 'jiaxiangdong@192.168.1.134'
 $remoteCommand = '/opt/homebrew/bin/m1ddc display 1 set input 7'
 $targetDisplay = '\\.\DISPLAY1'
-$monitorStateFile = Join-Path ([System.IO.Path]::GetTempPath()) "WorkspaceManager-monitor-state-$PID.csv"
 
 if (-not (Test-Path $multiMonitorTool)) {
     throw "MultiMonitorTool.exe not found: $multiMonitorTool"
@@ -33,20 +32,25 @@ Write-Host 'Waiting up to 20 seconds for Thunderbird U8 to become active...'
 $displayReady = $false
 $deadline = (Get-Date).AddSeconds(20)
 
-try {
-    do {
-        Remove-Item -LiteralPath $monitorStateFile -Force -ErrorAction SilentlyContinue
-        & $multiMonitorTool /scomma $monitorStateFile
+do {
+    $monitorStateFile = Join-Path ([System.IO.Path]::GetTempPath()) (
+        "WorkspaceManager-monitor-state-{0}.csv" -f ([Guid]::NewGuid().ToString('N'))
+    )
 
-        if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
-            throw "MultiMonitorTool.exe monitor detection failed with exit code $LASTEXITCODE."
+    try {
+        $monitorExportArguments = @('/scomma', ('"{0}"' -f $monitorStateFile))
+        $monitorExportProcess = Start-Process -FilePath $multiMonitorTool -ArgumentList $monitorExportArguments -Wait -PassThru
+
+        if ($monitorExportProcess.ExitCode -ne 0) {
+            throw "MultiMonitorTool.exe monitor detection failed with exit code $($monitorExportProcess.ExitCode)."
         }
 
         $display = $null
 
         if (Test-Path -LiteralPath $monitorStateFile -PathType Leaf) {
             try {
-                $display = Import-Csv -LiteralPath $monitorStateFile |
+                $monitorRows = @(Import-Csv -LiteralPath $monitorStateFile)
+                $display = $monitorRows |
                     Where-Object { $_.Name -eq $targetDisplay } |
                     Select-Object -First 1
             }
@@ -57,15 +61,34 @@ try {
 
         if ($null -ne $display -and $display.Active -eq 'Yes' -and $display.Disconnected -ne 'Yes') {
             $displayReady = $true
-            break
         }
+    }
+    finally {
+        for ($cleanupAttempt = 1; $cleanupAttempt -le 5; $cleanupAttempt++) {
+            if (-not (Test-Path -LiteralPath $monitorStateFile)) {
+                break
+            }
 
-        Start-Sleep -Seconds 1
-    } while ((Get-Date) -lt $deadline)
-}
-finally {
-    Remove-Item -LiteralPath $monitorStateFile -Force -ErrorAction SilentlyContinue
-}
+            try {
+                Remove-Item -LiteralPath $monitorStateFile -Force -ErrorAction Stop
+                break
+            }
+            catch {
+                if ($cleanupAttempt -eq 5) {
+                    throw "Failed to remove temporary monitor state file: $monitorStateFile"
+                }
+
+                Start-Sleep -Milliseconds 100
+            }
+        }
+    }
+
+    if ($displayReady) {
+        break
+    }
+
+    Start-Sleep -Seconds 1
+} while ((Get-Date) -lt $deadline)
 
 if (-not $displayReady) {
     throw "Timed out after 20 seconds waiting for $targetDisplay to become active."
