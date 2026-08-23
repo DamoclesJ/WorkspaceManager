@@ -406,6 +406,43 @@ U8 从 Mac HDMI 切换到 Windows DP 后，需要等待约 10 秒完成恢复。
 - Error 32 未再出现。
 - 对应版本标签：`phase-2.1-workspace-reliability`。
 
+## Phase 2.2-B Logging / Diagnostics 验证
+
+验证结果（2026-08-23）：
+
+### Switch to Windows
+
+- Health Check 通过。
+- `DisplaySwitch.exe /extend` 执行成功。
+- Windows 到 Mac 的 SSH 远程命令执行成功。
+- `/opt/homebrew/bin/m1ddc display 1 set input 7` 执行成功，U8 切换到 Windows DP。
+- MultiMonitorTool readiness detection 成功识别 U8。
+- 本次显示器重新枚举后，U8 的动态映射为 `\\.\DISPLAY2`。
+- MultiMonitorTool `/SetPrimary` 执行成功，U8 成为 Windows 主显示器。
+- 两次验证样本的完整切换耗时约为 7.4–7.5 秒。
+
+### Switch to Mac
+
+- Health Check 通过。
+- 已确认稳定的 Switch to Mac 流程不调用 SSH 或 `m1ddc`。
+- Windows 执行 `DisplaySwitch.exe /external` 后释放 U8 的 DP 信号。
+- U8 在 DP 信号释放后自动返回 Mac HDMI，实机验证成功。
+- 切换成功及总耗时能够正常写入日志。
+
+### DisplaySwitch 空退出码兼容
+
+- Windows 实机验证发现：`DisplaySwitch.exe /external` 成功执行时，PowerShell 的 `$LASTEXITCODE` 可能为 `$null`。
+- Logging 初次接入时将空退出码误判为失败，并生成了没有有效退出码的错误信息。
+- 当前判断已与 `/extend` 流程保持一致：只有 `$LASTEXITCODE` 非 `$null` 且非 `0` 时才判定失败。
+- 修复后不再产生误导性的空 exit code 错误，Switch to Mac 验证通过。
+
+### Logging 结果
+
+- `logs/workspace-switch.log` 已在 Windows 实机生成并由托盘 Open Logs 打开。
+- 日志包含时间戳、Health Check、关键切换步骤、动态 DISPLAY 映射、成功或失败结果及总耗时。
+- 日志写入保持非阻断，不改变已验证的硬件切换顺序和行为。
+- 对应版本标签：`phase-2.2-b-logging`。
+
 ---
 
 # 当前结论
