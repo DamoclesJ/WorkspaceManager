@@ -38,7 +38,7 @@ Write-Host 'Switching Windows to BenQ only and releasing U8 DP...'
 & $displaySwitch /external
 $displaySwitchExitCode = $LASTEXITCODE
 
-if ($displaySwitchExitCode -ne 0) {
+if ($null -ne $displaySwitchExitCode -and $displaySwitchExitCode -ne 0) {
     Write-WorkspaceLog -Level ERROR -Message "DisplaySwitch /external failed with exit code $displaySwitchExitCode"
     throw "DisplaySwitch.exe failed with exit code $displaySwitchExitCode."
 }
