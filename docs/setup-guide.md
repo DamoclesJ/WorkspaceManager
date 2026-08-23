@@ -1,13 +1,13 @@
 # WorkspaceManager 部署指南
 
-> 适用版本：Phase 1.4
-> 更新日期：2026-08-10
+> 适用版本：Phase 2.2-C
+> 更新日期：2026-08-23
 
 本文档记录 WorkspaceManager 在当前 Mac mini M4、Windows 台式机、雷鸟 U8 和 BenQ GW2480 环境中的从零部署流程。
 
 ## 1. 系统架构
 
-WorkspaceManager 使用 Windows 作为控制入口，不部署常驻服务、Agent 或 GUI。
+WorkspaceManager 使用 Windows Tray 作为当前正式控制入口，不部署 Windows Service 或 Agent。Tray 是当前用户会话中的普通 UI 进程。
 
 切换到 Mac：
 
@@ -289,7 +289,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\WorkspaceManager\scr
 - Windows → Mac 依赖 Mac 地址 `192.168.1.134` 和用户 `jiaxiangdong`。
 - Mac 必须开机、已登录、连接 U8，且 Remote Login 可用。
 - MultiMonitorTool 是 Windows x64 可执行文件，位于仓库的 `tools/MultiMonitorTool.exe`。
-- 当前没有远程唤醒、输入源状态检测、自动重试、GUI、服务或 Agent。
+- 当前没有远程唤醒、输入源状态检测、自动重试、Windows Service 或 Agent。
 
 ## 9. 常见故障
 
@@ -314,3 +314,37 @@ Test-Path .\tools\MultiMonitorTool.exe
 - 确认 U8 已在 Windows DP 输入下稳定显示。
 - 保留脚本中的约 10 秒等待。
 - 重新确认 U8 在 Windows 中仍被识别为 `\\.\DISPLAY1`。
+
+## 10. Windows Tray Controller
+
+### 第一次启动 Tray
+
+在 Windows 上双击：
+
+```text
+scripts\launcher\start-workspace-manager-tray.vbs
+```
+
+WorkspaceManager 图标会出现在当前用户的系统托盘中。再次运行该 VBS 不会创建第二个 Tray 实例。
+
+Tray 优先加载 `assets\workspace-manager.ico`。正式图标不存在或无法加载时，会自动使用 Windows 默认应用程序图标，不影响启动。
+
+### 启用 Start with Windows
+
+打开 Tray 菜单并点击 `Start with Windows`。启用成功后菜单显示勾选，并在当前用户 Startup 文件夹创建：
+
+```text
+WorkspaceManager.lnk
+```
+
+该快捷方式指向当前仓库中的 `scripts\launcher\start-workspace-manager-tray.vbs`，仓库不需要位于固定盘符或目录。
+
+推荐日常使用流程：
+
+```text
+Windows 登录 → Tray 自动启动 → 使用 Tray 切换工作区
+```
+
+### 关闭 Start with Windows
+
+再次点击已勾选的 `Start with Windows`。成功后勾选消失，并且只删除 WorkspaceManager 自己管理的 `WorkspaceManager.lnk`，不会修改其他 Startup 项目。

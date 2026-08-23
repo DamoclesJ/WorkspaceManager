@@ -11,6 +11,10 @@
 - Phase 2.2-A — Windows Tray Controller：已完成并通过 Windows 实机验证。
 - Phase 2.2-B — Logging / Diagnostics：已完成并通过 Windows 实机双向切换验证。
 
+## Current Phase
+
+- Phase 2.2-C — Desktop Ready：实现已完成，等待 Windows 实机验证。
+
 ## Current Capabilities
 
 - Windows ↔ Mac 双向工作区切换。
@@ -18,6 +22,8 @@
 - Windows 使用 MultiMonitorTool 切换主显示器。
 - 使用 VBS hidden launcher 隐藏启动 PowerShell。
 - 使用 Windows Tray Controller 作为托盘触发入口。
+- Tray 支持当前用户级别的 Start with Windows 开关。
+- Tray 优先加载 `assets/workspace-manager.ico`，资源缺失或加载失败时使用 Windows 默认图标。
 - 切换前执行 Workspace health check。
 - 雷鸟 U8 DP 输入切换。
 - Display readiness detection。
@@ -62,11 +68,19 @@ Mac：
 - 依赖局域网 SSH。
 - 依赖固定的 Mac SSH 地址。
 - 当前未实现自动 IP 发现。
+- 正式的 `assets/workspace-manager.ico` 尚待单独设计。
 
-## Next Planned Phase
+## Recommended Daily Use
 
-Phase 2.2-C — Switch Result Verification：
+`Windows 登录 → WorkspaceManager Tray 自动启动 → 通过 Tray 切换 Windows / Mac 工作区`
 
-- 验证切换后的主屏状态。
-- 确认 U8 是否成为 Windows Primary。
-- 评估必要时的有限自动重试。
+Windows Tray Controller 是当前正式用户入口；现有 VBS 和 PowerShell 脚本继续作为可独立运行的备用入口。
+
+## Next Validation
+
+Phase 2.2-C — Desktop Ready Windows 实机验证：
+
+- 验证正式图标加载和默认图标 fallback。
+- 验证 Start with Windows 的状态读取、启用和关闭。
+- 注销并重新登录，确认 Tray 自动启动且保持单实例。
+- 回归验证现有 Tray 菜单和双向切换流程。
